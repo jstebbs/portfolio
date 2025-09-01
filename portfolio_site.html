@@ -1,0 +1,184 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Welcome to My Portfolio</h1>
+    <p class="bio">This is my space for writing, satire, and video essays. Explore the categories below.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="morningbrew.html">Morning Brew</a></li>
+      <li><a href="satire.html">Satire</a></li>
+    </ul>
+  </nav>
+</body>
+</html>
+
+<!-- morningbrew.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morning Brew</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="morningbrew">
+  <header>
+    <h1>Morning Brew</h1>
+  </header>
+  <main id="morningbrew-container" class="card-grid"></main>
+  <script src="script.js"></script>
+  <script>
+    loadMorningBrew();
+  </script>
+</body>
+</html>
+
+<!-- satire.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satire</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="satire">
+  <header>
+    <h1>Satire</h1>
+  </header>
+  <main id="satire-container" class="card-grid"></main>
+  <script src="script.js"></script>
+  <script>
+    loadSatire();
+  </script>
+</body>
+</html>
+
+/* style.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+header {
+  text-align: center;
+  padding: 2rem;
+}
+nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+}
+nav li {
+  margin: 0 1rem;
+}
+nav a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.card iframe {
+  width: 100%;
+  height: 200px;
+  border: none;
+}
+
+/* Morning Brew theme */
+body.morningbrew {
+  background-color: #e6f2ff;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Satire theme */
+body.satire {
+  font-family: 'Georgia', serif;
+}
+.card.theonion {
+  background-color: darkgreen;
+  color: white;
+  border: 1px solid black;
+  text-align: left;
+}
+.card.mcsweeneys {
+  background-color: white;
+  color: black;
+  font-family: 'Playfair Display', serif;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+
+/* script.js */
+const morningBrewURL = "https://docs.google.com/spreadsheets/d/11NFLmbmuMRyXSX9QXNYJ4COHAo7fK4rZZ-0W1Dt51C8/gviz/tq?tqx=out:json&gid=0";
+const satireURL = "https://docs.google.com/spreadsheets/d/11NFLmbmuMRyXSX9QXNYJ4COHAo7fK4rZZ-0W1Dt51C8/gviz/tq?tqx=out:json&gid=209687342";
+
+function parseSheetJSON(rawText) {
+  const json = JSON.parse(rawText.substr(47).slice(0, -2));
+  return json.table.rows.map(r => r.c.map(c => (c ? c.v : "")));
+}
+
+function loadMorningBrew() {
+  fetch(morningBrewURL)
+    .then(res => res.text())
+    .then(txt => {
+      const rows = parseSheetJSON(txt);
+      const container = document.getElementById("morningbrew-container");
+      rows.slice(1).forEach(r => {
+        const [title, platform, embedURL] = r;
+        if (!embedURL) return;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <iframe src="${embedURL}" allowfullscreen></iframe>
+          <h3>${title}</h3>
+        `;
+        container.appendChild(card);
+      });
+    });
+}
+
+function loadSatire() {
+  fetch(satireURL)
+    .then(res => res.text())
+    .then(txt => {
+      const rows = parseSheetJSON(txt);
+      const container = document.getElementById("satire-container");
+      rows.slice(1).forEach(r => {
+        const [siteTitle, pageTitle, joke, link] = r;
+        if (!siteTitle && !pageTitle && !joke) return;
+        const card = document.createElement("div");
+        card.className = `card ${siteTitle.toLowerCase().replace(/[^a-z]/g, '')}`;
+        card.innerHTML = `
+          <h4 class="site-title">${siteTitle}</h4>
+          ${pageTitle ? `<h3 class="page-title">${link ? `<a href="${link}" target="_blank">${pageTitle}</a>` : pageTitle}</h3>` : ""}
+          ${joke ? `<p class="joke">${joke}</p>` : ""}
+        `;
+        container.appendChild(card);
+      });
+    });
+}
